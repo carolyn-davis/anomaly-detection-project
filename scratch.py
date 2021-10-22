@@ -18,7 +18,7 @@ import acquire as a
 import numpy as np
 import datetime as t
 
-import matplotlib as plt 
+import matplotlib.pyplot as plt 
 
 import seaborn as sns
 
@@ -169,32 +169,45 @@ q3_slashes['path'].value_counts()
 
 
 #drops miscellaneous characters and their respective rows that could not defined at time of calc
+
+
+#assigns variable to rows containing slash in the column 'path'
 q3_slashes = q3_slashes[q3_slashes['path'] == '/']
+
+#any rows with a len less than too are hypothesised to be slashes
 q3_unslashes = df[df['path'].str.len() > 2]
 
+
+#visualize the groupings to ensure just / value for the col 
 q3_grouping = q3_slashes.groupby('path')['ip'].value_counts()
+
+#renaming the new column states as ip to counts for further analysis
 q3_grouping = q3_grouping.rename('counts')
 
-
+#reset the index 
 q3_grouping = q3_grouping.reset_index()
 
+#set index to unique identifier for each student 'ip'
 q3_grouping = q3_grouping.set_index('ip')
 
+#drop col path it is no longer relevant
 q3_grouping = q3_grouping.drop(columns=['path'], axis=1)
 
-
+#assigning all activity that is not a slash to its own col for overall activity comparison
 q3_div = q3_unslashes['ip'].value_counts()
-
+#renaming value_counts to div for divide marker
 q3_div = q3_div.rename('div')
 
-
+#concat the two new value count variables into one df, maintianing index integrity
 q3_all = pd.concat([q3_grouping, q3_div], axis=1)
 
 
 #make new col for activity ration based off homepage activity(no lessons) in comparison to all curriculum access based off student ip
 q3_all['activity'] = q3_all['counts'] / q3_all['div']
-
+#found some nuils, lets drop those
 q3_all = q3_all.dropna()
+
+#hypothesising any account or count activity t
 q3_all = q3_all[q3_all['counts'] > 20]
 q3_all['activity'].head(10)
 q3_all = q3_all.sort_values(by='activity', ascending=False)
@@ -211,14 +224,95 @@ q3_all['activity'].head(10).plot.bar()
 
 
 
-
-
-
 # q3_grouping = q3_grouping.rename('counts')
 # q3_grouping = q3_grouping.reset_index()
 
 # #plot and viz top 10 students 
 # q3_grouping.head(10).plot.bar()
+
+
+
+# =============================================================================
+# Q4: What topics are grads continuously accessing after graduation from the curriculum?
+# =============================================================================
+# =============================================================================
+# #Plan:
+# =============================================================================
+# =============================================================================
+# #set dates to only after end date
+# #look at lessons without '/' homepage indication 
+# #group by program and lesson 
+# 
+# =============================================================================
+#make a copy of the df that filters out lesson logs with just '/'
+after_grad_df = q1_df.copy() 
+
+
+after_grad_df = after_grad_df[after_grad_df['date'] > after_grad_df['end_date']]
+
+q4_grouping = after_grad_df.groupby('program_id')['path'].value_counts()
+
+q4_grouping = q4_grouping.rename('counts')
+
+#reset the index 
+q4_grouping = q4_grouping.reset_index()
+
+# #set index to unique identifier for each student 'ip'
+# q4_grouping = q4_grouping.set_index('')
+
+keys = list(q4_grouping['program_id'].unique())
+df_split = {key: q4_grouping[q4_grouping['program_id'] == key].sort_values(by= 'counts', ascending=False).head(3).set_index('path') for key in keys}
+
+
+for program, df in df_split.items():
+    df.plot.bar(title=program)
+    plt.legend()
+    plt.show()
+    plt.close()
+    
+    
+
+
+
+# =============================================================================
+# Q5 Which lessons are least accessedpost grad(my interoretation of the question)?
+# =============================================================================
+# =============================================================================
+# #plan:
+    #group by lessons .tail for post grads or all students for least accessed lessons
+    #accessed in curriculum logs 
+    #look 
+# =============================================================================
+# =============================================================================
+# #Plan:
+    #essentially doing the exact process as seen above but with .tail()
+# =============================================================================
+
+q5_grouping = after_grad_df.groupby('program_id')['path'].value_counts()
+
+q5_grouping = q5_grouping.rename('counts')
+
+#reset the index 
+q5_grouping = q5_grouping.reset_index()
+
+
+keys = list(q5_grouping['program_id'].unique())
+df_split = {key: q5_grouping[q5_grouping['program_id'] == key].sort_values(by= 'counts', ascending=False).tail(3).set_index('path') for key in keys}
+
+print(df_split)
+
+
+
+
+for program, df in df_split.items():
+    df.plot.bar(title=program)
+    plt.legend()
+    plt.show()
+    plt.close()
+    
+
+
+
 
 
 
